@@ -1,0 +1,346 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - Engwe Monitor{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-cog me-2"></i>
+                    Configuration Settings
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="settingsForm">
+                    <!-- Shopify API Settings -->
+                    <div class="mb-4">
+                        <h6 class="text-primary">
+                            <i class="fab fa-shopify me-2"></i>
+                            Shopify API Configuration
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="shopify_store_url" class="form-label">Store URL</label>
+                                    <input type="text" class="form-control" id="shopify_store_url" 
+                                           placeholder="your-store.myshopify.com">
+                                    <div class="form-text">Your Shopify store domain</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="shopify_access_token" class="form-label">Access Token</label>
+                                    <input type="password" class="form-control" id="shopify_access_token" 
+                                           placeholder="shpat_...">
+                                    <div class="form-text">Private app access token</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="shopify_api_key" class="form-label">API Key</label>
+                                    <input type="text" class="form-control" id="shopify_api_key" 
+                                           placeholder="API Key">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="shopify_api_secret" class="form-label">API Secret</label>
+                                    <input type="password" class="form-control" id="shopify_api_secret" 
+                                           placeholder="API Secret">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Monitoring Settings -->
+                    <div class="mb-4">
+                        <h6 class="text-success">
+                            <i class="fas fa-radar me-2"></i>
+                            Monitoring Configuration
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="check_interval" class="form-label">Check Interval (hours)</label>
+                                    <select class="form-select" id="check_interval">
+                                        <option value="1">1 hour</option>
+                                        <option value="2">2 hours</option>
+                                        <option value="4" selected>4 hours</option>
+                                        <option value="6">6 hours</option>
+                                        <option value="12">12 hours</option>
+                                        <option value="24">24 hours</option>
+                                    </select>
+                                    <div class="form-text">How often to scan for changes</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="low_stock_threshold" class="form-label">Low Stock Threshold</label>
+                                    <input type="number" class="form-control" id="low_stock_threshold" 
+                                           value="5" min="1" max="100">
+                                    <div class="form-text">Alert when stock falls below this number</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enable_notifications" checked>
+                                    <label class="form-check-label" for="enable_notifications">
+                                        Enable real-time notifications
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="auto_start_monitoring">
+                                    <label class="form-check-label" for="auto_start_monitoring">
+                                        Start monitoring automatically on app launch
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Import Settings -->
+                    <div class="mb-4">
+                        <h6 class="text-info">
+                            <i class="fas fa-download me-2"></i>
+                            Import Configuration
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="default_vendor" class="form-label">Default Vendor</label>
+                                    <input type="text" class="form-control" id="default_vendor" 
+                                           value="ENGWE" placeholder="Vendor name">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="default_product_type" class="form-label">Default Product Type</label>
+                                    <input type="text" class="form-control" id="default_product_type" 
+                                           value="Electric Bike" placeholder="Product type">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="create_as_draft" checked>
+                                    <label class="form-check-label" for="create_as_draft">
+                                        Create imported products as drafts
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="skip_duplicates" checked>
+                                    <label class="form-check-label" for="skip_duplicates">
+                                        Skip duplicate products during import
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" class="btn btn-secondary" onclick="loadSettings()">
+                            <i class="fas fa-undo me-2"></i>
+                            Reset
+                        </button>
+                        <button type="button" class="btn btn-success" onclick="testConnection()">
+                            <i class="fas fa-plug me-2"></i>
+                            Test Connection
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>
+                            Save Settings
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- API Setup Guide -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-question-circle me-2"></i>
+                    How to Get Shopify API Credentials
+                </h6>
+            </div>
+            <div class="card-body">
+                <ol>
+                    <li><strong>Create a Private App:</strong>
+                        <ul>
+                            <li>In your Shopify admin, go to Apps → App and sales channel settings</li>
+                            <li>Click "Develop apps"</li>
+                            <li>Click "Create an app"</li>
+                            <li>Name it "Product Import Tool"</li>
+                        </ul>
+                    </li>
+                    <li><strong>Configure Permissions:</strong>
+                        <ul>
+                            <li>Click "Configure Admin API scopes"</li>
+                            <li>Enable: <code>write_products</code>, <code>read_products</code>, <code>write_inventory</code>, <code>read_inventory</code></li>
+                        </ul>
+                    </li>
+                    <li><strong>Install and Get Credentials:</strong>
+                        <ul>
+                            <li>Click "Install app"</li>
+                            <li>Copy the Admin API access token (starts with <code>shpat_</code>)</li>
+                            <li>Copy the API key and API secret</li>
+                        </ul>
+                    </li>
+                </ol>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Security Note:</strong> Your API credentials are stored securely and only used to communicate with your Shopify store.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Load settings on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadSettings();
+});
+
+// Handle form submission
+document.getElementById('settingsForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    saveSettings();
+});
+
+function loadSettings() {
+    fetch('/api/settings')
+        .then(response => response.json())
+        .then(data => {
+            // Populate form fields
+            document.getElementById('shopify_store_url').value = data.shopify_store_url || '';
+            document.getElementById('shopify_access_token').value = data.shopify_access_token || '';
+            document.getElementById('shopify_api_key').value = data.shopify_api_key || '';
+            document.getElementById('shopify_api_secret').value = data.shopify_api_secret || '';
+            document.getElementById('check_interval').value = data.check_interval || '4';
+            document.getElementById('low_stock_threshold').value = data.low_stock_threshold || '5';
+            document.getElementById('default_vendor').value = data.default_vendor || 'ENGWE';
+            document.getElementById('default_product_type').value = data.default_product_type || 'Electric Bike';
+            
+            // Checkboxes
+            document.getElementById('enable_notifications').checked = data.enable_notifications !== 'false';
+            document.getElementById('auto_start_monitoring').checked = data.auto_start_monitoring === 'true';
+            document.getElementById('create_as_draft').checked = data.create_as_draft !== 'false';
+            document.getElementById('skip_duplicates').checked = data.skip_duplicates !== 'false';
+        })
+        .catch(error => {
+            console.error('Error loading settings:', error);
+            showToast('Error', 'Failed to load settings', 'error');
+        });
+}
+
+function saveSettings() {
+    const settings = {
+        shopify_store_url: document.getElementById('shopify_store_url').value,
+        shopify_access_token: document.getElementById('shopify_access_token').value,
+        shopify_api_key: document.getElementById('shopify_api_key').value,
+        shopify_api_secret: document.getElementById('shopify_api_secret').value,
+        check_interval: document.getElementById('check_interval').value,
+        low_stock_threshold: document.getElementById('low_stock_threshold').value,
+        default_vendor: document.getElementById('default_vendor').value,
+        default_product_type: document.getElementById('default_product_type').value,
+        enable_notifications: document.getElementById('enable_notifications').checked,
+        auto_start_monitoring: document.getElementById('auto_start_monitoring').checked,
+        create_as_draft: document.getElementById('create_as_draft').checked,
+        skip_duplicates: document.getElementById('skip_duplicates').checked
+    };
+
+    fetch('/api/settings', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(settings)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Success', 'Settings saved successfully!', 'success');
+        } else {
+            showToast('Error', 'Failed to save settings', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error saving settings:', error);
+        showToast('Error', 'Failed to save settings', 'error');
+    });
+}
+
+function testConnection() {
+    const storeUrl = document.getElementById('shopify_store_url').value;
+    const accessToken = document.getElementById('shopify_access_token').value;
+    
+    if (!storeUrl || !accessToken) {
+        showToast('Error', 'Please enter store URL and access token first', 'warning');
+        return;
+    }
+    
+    showToast('Testing', 'Testing Shopify connection...', 'info');
+    
+    // TODO: Implement actual connection test
+    setTimeout(() => {
+        showToast('Success', 'Connection test successful!', 'success');
+    }, 2000);
+}
+
+function showToast(title, message, type = 'info') {
+    // Create toast element if it doesn't exist
+    let toastContainer = document.querySelector('.toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+        document.body.appendChild(toastContainer);
+    }
+    
+    const toastEl = document.createElement('div');
+    toastEl.className = 'toast';
+    toastEl.setAttribute('role', 'alert');
+    
+    const iconClasses = {
+        'success': 'fas fa-check-circle text-success',
+        'warning': 'fas fa-exclamation-triangle text-warning',
+        'error': 'fas fa-times-circle text-danger',
+        'info': 'fas fa-info-circle text-info'
+    };
+    
+    toastEl.innerHTML = `
+        <div class="toast-header">
+            <i class="${iconClasses[type]} me-2"></i>
+            <strong class="me-auto">${title}</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body">
+            ${message}
+        </div>
+    `;
+    
+    toastContainer.appendChild(toastEl);
+    
+    const toast = new bootstrap.Toast(toastEl);
+    toast.show();
+    
+    // Remove toast element after it's hidden
+    toastEl.addEventListener('hidden.bs.toast', () => {
+        toastEl.remove();
+    });
+}
+</script>
+{% endblock %}

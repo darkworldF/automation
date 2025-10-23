@@ -1,0 +1,48 @@
+# Render Deployment Configuration
+
+# This file helps Render understand how to deploy your app
+
+## Build Configuration
+- Python version: 3.9+
+- Build command: `pip install -r requirements.txt`
+- Start command: `gunicorn --worker-class eventlet -w 1 app:app`
+
+## Environment Variables
+Set these in your Render dashboard:
+
+### Required
+- `SECRET_KEY`: A secure random string for Flask sessions
+- `FLASK_ENV`: Set to "production" for live deployment
+
+### Optional
+- `DATABASE_URL`: SQLite database path (auto-managed)
+- `PORT`: Port number (auto-managed by Render)
+
+## Database
+- SQLite database is automatically created on first run
+- Data persists across deployments
+- No external database service required
+
+## Scaling
+- Recommended: Single worker due to SQLite limitations
+- For high traffic, consider upgrading to PostgreSQL
+
+## Health Check
+- Endpoint: `/` (main dashboard)
+- Expected response: 200 OK
+
+## Static Files
+- CSS and JS files served from `/static/`
+- Bootstrap and FontAwesome loaded from CDN
+- Optimized for fast loading
+
+## WebSocket Support
+- Real-time features powered by Socket.IO
+- Automatic fallback to polling if WebSockets unavailable
+- Optimized for Render's networking
+
+## Security
+- HTTPS automatically provided by Render
+- Environment variables for sensitive data
+- CSRF protection enabled
+- Input validation and sanitization

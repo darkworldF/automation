@@ -1,0 +1,434 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Engwe Monitor{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Statistics Cards -->
+    <div class="col-12">
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="card-title mb-1" id="total-products">{{ total_products }}</h4>
+                                <p class="card-text">Total Products</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-bicycle fa-2x opacity-75"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="card-title mb-1" id="new-products-24h">{{ new_products_24h }}</h4>
+                                <p class="card-text">New (24h)</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-plus-circle fa-2x opacity-75"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="card-title mb-1">
+                                    <span id="monitor-status">{{ 'ON' if monitoring_active else 'OFF' }}</span>
+                                </h4>
+                                <p class="card-text">Monitor Status</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-radar fa-2x opacity-75" id="monitor-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="card-title mb-1" id="scan-progress">Ready</h4>
+                                <p class="card-text">Scan Status</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-search fa-2x opacity-75"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Control Panel -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-play-circle me-2"></i>
+                    Control Panel
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary" id="btn-scan" onclick="startScan()">
+                        <i class="fas fa-search me-2"></i>
+                        Manual Scan
+                    </button>
+                    <button class="btn btn-success" id="btn-start-monitor" onclick="startMonitoring()">
+                        <i class="fas fa-play me-2"></i>
+                        Start Monitoring
+                    </button>
+                    <button class="btn btn-danger" id="btn-stop-monitor" onclick="stopMonitoring()">
+                        <i class="fas fa-stop me-2"></i>
+                        Stop Monitoring
+                    </button>
+                    <hr>
+                    <button class="btn btn-info" onclick="exportProducts()">
+                        <i class="fas fa-download me-2"></i>
+                        Export Products
+                    </button>
+                    <button class="btn btn-secondary" onclick="refreshDashboard()">
+                        <i class="fas fa-sync me-2"></i>
+                        Refresh Data
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    Recent Activity
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush" id="activity-log">
+                    {% for log in recent_logs %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <i class="fas fa-{{ 'check-circle text-success' if log.event_type == 'SCAN_COMPLETE' else 'info-circle text-info' if log.event_type == 'SCAN_START' else 'exclamation-triangle text-warning' }} me-2"></i>
+                                <small>{{ log.message }}</small>
+                            </div>
+                            <small class="text-muted">{{ log.timestamp[:16] }}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-th-large me-2"></i>
+                    Latest Products
+                </h5>
+                <div>
+                    <button class="btn btn-sm btn-outline-primary" onclick="toggleView()">
+                        <i class="fas fa-th" id="view-toggle-icon"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div id="products-container">
+                    <div class="row g-3 p-3" id="products-grid">
+                        {% for product in products %}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card product-card h-100">
+                                {% if product.image_url %}
+                                <img src="{{ product.image_url }}" class="card-img-top product-image" alt="{{ product.title }}">
+                                {% else %}
+                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                    <i class="fas fa-image fa-3x text-muted"></i>
+                                </div>
+                                {% endif %}
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ product.title[:50] }}{% if product.title|length > 50 %}...{% endif %}</h6>
+                                    <p class="card-text">
+                                        <strong class="text-primary">${{ "%.2f"|format(product.price) }}</strong><br>
+                                        <small class="text-muted">
+                                            {% if product.available %}
+                                                <i class="fas fa-check-circle text-success"></i> In Stock ({{ product.inventory_quantity }})
+                                            {% else %}
+                                                <i class="fas fa-times-circle text-danger"></i> Out of Stock
+                                            {% endif %}
+                                        </small>
+                                    </p>
+                                </div>
+                                <div class="card-footer">
+                                    <small class="text-muted">
+                                        <i class="fas fa-tags me-1"></i>{{ product.variants_count }} variants
+                                        <span class="float-end">{{ product.last_updated[:10] }}</span>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scan Progress Modal -->
+<div class="modal fade" id="scanModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-search me-2"></i>
+                    Scanning Products
+                </h5>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+                <p id="scan-message">Initializing scan...</p>
+                <div class="progress">
+                    <div class="progress-bar" id="scan-progress-bar" role="progressbar" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Dashboard-specific JavaScript
+let socket = io();
+let isGridView = true;
+
+// Socket event handlers
+socket.on('connect', function() {
+    console.log('Connected to server');
+    updateConnectionStatus(true);
+});
+
+socket.on('disconnect', function() {
+    console.log('Disconnected from server');
+    updateConnectionStatus(false);
+});
+
+socket.on('scan_status', function(data) {
+    updateScanStatus(data);
+});
+
+socket.on('scan_progress', function(data) {
+    updateScanProgress(data);
+});
+
+socket.on('new_product', function(data) {
+    showNewProductNotification(data);
+});
+
+socket.on('monitor_status', function(data) {
+    updateMonitorStatus(data.active);
+});
+
+socket.on('log_update', function(data) {
+    addLogEntry(data);
+});
+
+// Functions
+function updateConnectionStatus(connected) {
+    const statusEl = document.getElementById('connection-status');
+    if (connected) {
+        statusEl.innerHTML = '<i class="fas fa-circle text-success me-1"></i>Connected';
+    } else {
+        statusEl.innerHTML = '<i class="fas fa-circle text-danger me-1"></i>Disconnected';
+    }
+}
+
+function startScan() {
+    const scanModal = new bootstrap.Modal(document.getElementById('scanModal'));
+    scanModal.show();
+    
+    fetch('/api/scan', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Scan result:', data);
+        })
+        .catch(error => {
+            console.error('Scan error:', error);
+            scanModal.hide();
+        });
+}
+
+function startMonitoring() {
+    fetch('/api/monitor/start', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Monitor Started', 'Background monitoring is now active', 'success');
+            }
+        });
+}
+
+function stopMonitoring() {
+    fetch('/api/monitor/stop', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Monitor Stopped', 'Background monitoring has been stopped', 'warning');
+            }
+        });
+}
+
+function updateScanStatus(data) {
+    const progressEl = document.getElementById('scan-progress');
+    const messageEl = document.getElementById('scan-message');
+    
+    if (data.status === 'complete') {
+        progressEl.textContent = 'Complete';
+        messageEl.textContent = data.message;
+        setTimeout(() => {
+            bootstrap.Modal.getInstance(document.getElementById('scanModal')).hide();
+            refreshDashboard();
+        }, 2000);
+    } else if (data.status === 'error') {
+        progressEl.textContent = 'Error';
+        messageEl.textContent = data.message;
+        setTimeout(() => {
+            bootstrap.Modal.getInstance(document.getElementById('scanModal')).hide();
+        }, 3000);
+    } else {
+        progressEl.textContent = 'Scanning';
+        messageEl.textContent = data.message;
+    }
+}
+
+function updateScanProgress(data) {
+    const progressBar = document.getElementById('scan-progress-bar');
+    const percentage = (data.current / data.total) * 100;
+    progressBar.style.width = percentage + '%';
+    progressBar.textContent = `${data.current}/${data.total}`;
+}
+
+function updateMonitorStatus(active) {
+    const statusEl = document.getElementById('monitor-status');
+    const iconEl = document.getElementById('monitor-icon');
+    
+    if (active) {
+        statusEl.textContent = 'ON';
+        iconEl.className = 'fas fa-radar fa-2x opacity-75 text-success';
+    } else {
+        statusEl.textContent = 'OFF';
+        iconEl.className = 'fas fa-radar fa-2x opacity-75';
+    }
+}
+
+function showNewProductNotification(product) {
+    const message = `New product: ${product.title} - $${product.price}`;
+    showToast('New Product Found!', message, 'success');
+}
+
+function addLogEntry(logData) {
+    const logContainer = document.getElementById('activity-log');
+    const logEntry = document.createElement('div');
+    logEntry.className = 'list-group-item';
+    
+    const iconClass = logData.type === 'SCAN_COMPLETE' ? 'check-circle text-success' :
+                     logData.type === 'SCAN_START' ? 'info-circle text-info' :
+                     'exclamation-triangle text-warning';
+    
+    logEntry.innerHTML = `
+        <div class="d-flex justify-content-between">
+            <div>
+                <i class="fas fa-${iconClass} me-2"></i>
+                <small>${logData.message}</small>
+            </div>
+            <small class="text-muted">${new Date(logData.timestamp).toLocaleString()}</small>
+        </div>
+    `;
+    
+    logContainer.insertBefore(logEntry, logContainer.firstChild);
+    
+    // Keep only last 10 entries
+    while (logContainer.children.length > 10) {
+        logContainer.removeChild(logContainer.lastChild);
+    }
+}
+
+function refreshDashboard() {
+    fetch('/api/dashboard')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('total-products').textContent = data.total_products;
+            document.getElementById('new-products-24h').textContent = data.new_products_24h;
+            updateMonitorStatus(data.monitoring_active);
+            showToast('Dashboard Updated', 'Data refreshed successfully', 'info');
+        });
+}
+
+function toggleView() {
+    isGridView = !isGridView;
+    const icon = document.getElementById('view-toggle-icon');
+    const container = document.getElementById('products-grid');
+    
+    if (isGridView) {
+        icon.className = 'fas fa-th';
+        container.className = 'row g-3 p-3';
+    } else {
+        icon.className = 'fas fa-list';
+        container.className = 'list-group list-group-flush';
+    }
+}
+
+function exportProducts() {
+    showToast('Export Started', 'Preparing product export...', 'info');
+    // TODO: Implement export functionality
+}
+
+function showToast(title, message, type = 'info') {
+    const toast = document.getElementById('notification-toast');
+    const titleEl = document.getElementById('toast-title');
+    const messageEl = document.getElementById('toast-message');
+    const iconEl = document.getElementById('toast-icon');
+    
+    titleEl.textContent = title;
+    messageEl.textContent = message;
+    
+    // Update icon based on type
+    const iconClasses = {
+        'success': 'fas fa-check-circle text-success',
+        'warning': 'fas fa-exclamation-triangle text-warning',
+        'error': 'fas fa-times-circle text-danger',
+        'info': 'fas fa-info-circle text-info'
+    };
+    
+    iconEl.className = iconClasses[type] + ' me-2';
+    
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+}
+
+// Auto-refresh dashboard every 30 seconds
+setInterval(refreshDashboard, 30000);
+</script>
+{% endblock %}
